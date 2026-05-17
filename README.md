@@ -200,3 +200,6 @@ chore(ci): add solhint to CI pipeline
 | Example Market | 0x1a3Efb107e3E3B7485E024D932f12304d9cbE7d1 |
 
 Explorer: https://sepolia.arbiscan.io
+
+## CI Status
+All 87 tests passing. forge build clean.
