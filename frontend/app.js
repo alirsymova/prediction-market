@@ -6,7 +6,7 @@ const ADDRESSES = {
   marketFactory: "0x5e5Dd1B65bBeb5803B8F7f93b78EeB6cDCef2446",
   govToken:      "0xFC213AFE69C46430Cd4C8B7F8AC86D3bA7877df8",
   governor:      "0x49c2FB085f1b5dE12B665fEA322f5827d4FcE25a",
-  usdc:          "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  usdc:          "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
 };
 
 const SUBGRAPH_URL =
