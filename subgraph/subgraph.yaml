@@ -1,0 +1,60 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: MarketFactory
+    network: base-sepolia
+    source:
+      address: "0x0000000000000000000000000000000000000000"  # replaced post-deploy
+      abi: MarketFactory
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Market
+        - Protocol
+      abis:
+        - name: MarketFactory
+          file: ./abis/MarketFactory.json
+      eventHandlers:
+        - event: MarketCreated(indexed address,string,indexed address,uint256,bytes32,bool)
+          handler: handleMarketCreated
+      file: ./src/factory.ts
+
+templates:
+  - kind: ethereum
+    name: PredictionMarket
+    network: base-sepolia
+    source:
+      abi: PredictionMarketV1
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Market
+        - Trade
+        - Claim
+        - LiquidityEvent
+      abis:
+        - name: PredictionMarketV1
+          file: ./abis/PredictionMarketV1.json
+      eventHandlers:
+        - event: SharesBought(indexed address,uint256,uint256,uint256)
+          handler: handleSharesBought
+        - event: SharesSold(indexed address,uint256,uint256,uint256)
+          handler: handleSharesSold
+        - event: MarketResolved(uint8,uint256)
+          handler: handleMarketResolved
+        - event: MarketSettled()
+          handler: handleMarketSettled
+        - event: WinningsClaimed(indexed address,uint256)
+          handler: handleWinningsClaimed
+        - event: LiquidityAdded(indexed address,uint256,uint256,uint256)
+          handler: handleLiquidityAdded
+        - event: LiquidityRemoved(indexed address,uint256,uint256,uint256)
+          handler: handleLiquidityRemoved
+      file: ./src/market.ts

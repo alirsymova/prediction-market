@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+env:
+  FOUNDRY_PROFILE: default
+
+jobs:
+  test:
+    name: Forge Build, Test & Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        run: forge install
+
+      - name: Check formatting
+        run: forge fmt --check
+
+      - name: Build
+        run: forge build --sizes
+
+      - name: Run tests
+        run: forge test -vv
+        env:
+          BASE_SEPOLIA_RPC: ${{ secrets.BASE_SEPOLIA_RPC }}
+          MAINNET_RPC:      ${{ secrets.MAINNET_RPC }}
+
+      - name: Coverage
+        run: |
+          forge coverage \
+            --report lcov \
+            --report markdown \
+            --report-file coverage/coverage.md
+        env:
+          BASE_SEPOLIA_RPC: ${{ secrets.BASE_SEPOLIA_RPC }}
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+  lint:
+    name: Solhint + Frontend Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install tools
+        run: npm install -g solhint prettier
+
+      - name: Solhint
+        run: solhint 'src/**/*.sol'
+
+      - name: Prettier frontend
+        run: prettier --check 'frontend/**/*.{js,html,css}'
+
+  slither:
+    name: Slither Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install Slither
+        run: pip3 install slither-analyzer
+
+      - name: Run Slither
+        run: |
+          slither . \
+            --config-file slither.config.json \
+            --checklist \
+            --markdown-root "https://github.com/${{ github.repository }}/blob/${{ github.sha }}/" \
+            2>&1 | tee slither-report.md
+        continue-on-error: true  # Report but don't fail (zero High/Med enforced manually)
+
+      - name: Upload Slither report
+        uses: actions/upload-artifact@v4
+        with:
+          name: slither-report
+          path: slither-report.md

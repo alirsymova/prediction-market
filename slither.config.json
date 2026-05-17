@@ -1,0 +1,11 @@
+{
+  "filter_paths": "lib/",
+  "exclude_dependencies": true,
+  "solc_remaps": [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "@chainlink/contracts/=lib/chainlink/contracts/",
+    "forge-std/=lib/forge-std/src/"
+  ],
+  "detectors_to_exclude": "naming-convention"
+}

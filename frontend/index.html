@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PredMarket — On-Chain Prediction Markets</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:      #0a0a0f;
+  --surface: #12121a;
+  --border:  #1e1e2e;
+  --accent:  #7c3aed;
+  --yes:     #22c55e;
+  --no:      #ef4444;
+  --text:    #e2e8f0;
+  --muted:   #64748b;
+  --mono:    'Space Mono', monospace;
+  --sans:    'Syne', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+/* ── Layout ── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 2rem; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--bg); z-index: 100;
+}
+.logo { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; }
+.logo span { color: var(--accent); }
+
+main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+/* ── Wallet ── */
+#wallet-btn {
+  font-family: var(--mono); font-size: 0.75rem;
+  background: var(--accent); color: #fff; border: none;
+  padding: 0.6rem 1.25rem; border-radius: 6px; cursor: pointer;
+  transition: opacity 0.15s;
+}
+#wallet-btn:hover { opacity: 0.85; }
+#wallet-info { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); margin-left: 1rem; }
+
+/* ── Stats bar ── */
+.stats-bar {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+  margin-bottom: 2rem;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.25rem;
+}
+.stat-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.4rem; }
+.stat-value { font-family: var(--mono); font-size: 1.2rem; font-weight: 700; }
+
+/* ── Section headers ── */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.section-title { font-size: 1rem; font-weight: 600; }
+
+/* ── Market cards ── */
+.markets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
+.market-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.25rem; cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.market-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.market-card.selected { border-color: var(--accent); }
+
+.market-question { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; line-height: 1.4; }
+.prob-bar { height: 6px; background: var(--no); border-radius: 3px; margin-bottom: 0.6rem; overflow: hidden; }
+.prob-fill { height: 100%; background: var(--yes); border-radius: 3px; transition: width 0.4s; }
+.prob-labels {
+  display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: 0.72rem;
+}
+.yes-pct { color: var(--yes); }
+.no-pct  { color: var(--no);  }
+.market-meta {
+  margin-top: 0.75rem; font-size: 0.72rem; color: var(--muted);
+  font-family: var(--mono); display: flex; gap: 1rem;
+}
+.state-badge {
+  display: inline-block; padding: 0.2rem 0.5rem;
+  border-radius: 4px; font-size: 0.65rem; font-family: var(--mono);
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.state-Open     { background: #14532d; color: var(--yes); }
+.state-Closed   { background: #1e293b; color: var(--muted); }
+.state-Resolved { background: #1e1a3a; color: #a78bfa; }
+.state-Settled  { background: #1a1a3a; color: #818cf8; }
+.state-Disputed { background: #3b1515; color: var(--no); }
+
+/* ── Trade panel ── */
+.trade-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+}
+.trade-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; color: var(--muted); }
+.outcome-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.outcome-tab {
+  flex: 1; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border);
+  background: transparent; color: var(--text); font-family: var(--sans);
+  font-weight: 600; cursor: pointer; transition: all 0.15s;
+}
+.outcome-tab.yes.active { background: #14532d; border-color: var(--yes); color: var(--yes); }
+.outcome-tab.no.active  { background: #3b1515; border-color: var(--no);  color: var(--no);  }
+.outcome-tab:hover { border-color: var(--muted); }
+
+.input-group { margin-bottom: 1rem; }
+.input-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; }
+.token-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 1rem;
+  padding: 0.75rem 1rem; border-radius: 8px; outline: none;
+  transition: border-color 0.15s;
+}
+.token-input:focus { border-color: var(--accent); }
+
+.trade-info {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem;
+  font-family: var(--mono); font-size: 0.75rem;
+}
+.trade-info-row { display: flex; justify-content: space-between; margin-bottom: 0.3rem; }
+.trade-info-row:last-child { margin-bottom: 0; }
+
+.trade-btn {
+  width: 100%; padding: 0.85rem; border-radius: 8px; border: none;
+  font-family: var(--sans); font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.trade-btn.yes-btn { background: var(--yes); color: #000; }
+.trade-btn.no-btn  { background: var(--no);  color: #fff; }
+.trade-btn:hover   { opacity: 0.85; }
+.trade-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Governance panel ── */
+.proposals-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+}
+.proposal-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.85rem 0; border-bottom: 1px solid var(--border);
+}
+.proposal-row:last-child { border-bottom: none; }
+.proposal-desc { font-size: 0.85rem; flex: 1; padding-right: 1rem; }
+.proposal-state { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin-right: 1rem; }
+.vote-btn {
+  padding: 0.4rem 0.85rem; border-radius: 6px; border: 1px solid var(--accent);
+  background: transparent; color: var(--accent); font-family: var(--mono);
+  font-size: 0.72rem; cursor: pointer; transition: all 0.15s;
+}
+.vote-btn:hover { background: var(--accent); color: #fff; }
+
+/* ── User balances ── */
+.balances-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+  margin-bottom: 2rem;
+}
+.balance-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.25rem;
+}
+
+/* ── Toasts ── */
+#toast-container {
+  position: fixed; bottom: 1.5rem; right: 1.5rem;
+  display: flex; flex-direction: column; gap: 0.5rem; z-index: 9999;
+}
+.toast {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.8rem;
+  font-family: var(--mono); max-width: 320px; animation: slideIn 0.2s ease;
+}
+.toast.success { border-color: var(--yes); }
+.toast.error   { border-color: var(--no);  }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ── Subgraph section ── */
+.subgraph-banner {
+  background: linear-gradient(135deg, #1e1a3a, #12121a);
+  border: 1px solid #2d2060; border-radius: 12px;
+  padding: 1.25rem 1.5rem; margin-bottom: 2rem;
+}
+.subgraph-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #a78bfa; margin-bottom: 0.5rem; }
+.subgraph-trades { display: flex; flex-direction: column; gap: 0.5rem; }
+.subgraph-trade-row {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--muted);
+}
+
+/* ── Loading ── */
+.spinner {
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-msg { color: var(--no); font-family: var(--mono); font-size: 0.8rem; padding: 0.5rem; }
+.network-warning {
+  background: #3b1515; border: 1px solid var(--no);
+  border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem;
+  font-size: 0.8rem; display: flex; align-items: center; gap: 0.75rem;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Pred<span>Market</span></div>
+  <div style="display:flex;align-items:center;gap:0.5rem;">
+    <span id="wallet-info"></span>
+    <button id="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+  </div>
+</header>
+
+<main>
+  <!-- Network warning -->
+  <div id="network-warning" class="network-warning" style="display:none;">
+    ⚠️ Wrong network. Please switch to <strong>Base Sepolia</strong>.
+    <button onclick="switchNetwork()" style="margin-left:auto;padding:0.3rem 0.75rem;border-radius:4px;border:1px solid var(--no);background:transparent;color:var(--no);cursor:pointer;font-size:0.75rem;">Switch</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Total Markets</div>
+      <div class="stat-value" id="stat-markets">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">PMT Balance</div>
+      <div class="stat-value" id="stat-pmt">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Voting Power</div>
+      <div class="stat-value" id="stat-votes">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">USDC Balance</div>
+      <div class="stat-value" id="stat-usdc">—</div>
+    </div>
+  </div>
+
+  <!-- Markets from subgraph -->
+  <div class="subgraph-banner">
+    <div class="subgraph-label">📊 Live from The Graph — Recent Trades</div>
+    <div class="subgraph-trades" id="subgraph-trades">
+      <span class="spinner"></span>
+    </div>
+  </div>
+
+  <!-- Markets list -->
+  <div class="section-header">
+    <div class="section-title">Active Markets</div>
+    <div id="markets-loading"><span class="spinner"></span></div>
+  </div>
+  <div class="markets-grid" id="markets-grid"></div>
+
+  <!-- Trade panel -->
+  <div class="trade-panel" id="trade-panel" style="display:none;">
+    <div class="trade-title" id="trade-market-question">Select a market to trade</div>
+    <div class="outcome-tabs">
+      <button class="outcome-tab yes active" id="tab-yes" onclick="selectOutcome('yes')">YES</button>
+      <button class="outcome-tab no"          id="tab-no"  onclick="selectOutcome('no')">NO</button>
+    </div>
+    <div class="input-group">
+      <div class="input-label">Amount (USDC)</div>
+      <input class="token-input" id="trade-amount" type="number" placeholder="0.00" oninput="updateTradePreview()"/>
+    </div>
+    <div class="trade-info" id="trade-preview">
+      <div class="trade-info-row"><span>Estimated shares</span><span id="preview-shares">—</span></div>
+      <div class="trade-info-row"><span>Price impact</span><span id="preview-impact">—</span></div>
+      <div class="trade-info-row"><span>Fee (0.3%)</span><span id="preview-fee">—</span></div>
+    </div>
+    <button class="trade-btn yes-btn" id="trade-btn" onclick="executeTrade()">Buy YES</button>
+  </div>
+
+  <!-- Governance proposals -->
+  <div class="section-header">
+    <div class="section-title">Governance Proposals</div>
+    <div id="gov-loading"><span class="spinner"></span></div>
+  </div>
+  <div class="proposals-panel">
+    <div id="proposals-list"><div style="color:var(--muted);font-size:0.8rem;">Connect wallet to view proposals.</div></div>
+  </div>
+</main>
+
+<div id="toast-container"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

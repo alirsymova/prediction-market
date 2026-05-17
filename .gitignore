@@ -1,0 +1,24 @@
+# Foundry
+out/
+cache/
+broadcast/
+.env
+
+# Coverage
+coverage/
+lcov.info
+
+# Node
+node_modules/
+
+# Deployment artifacts (keep deployment.json in git after deploy)
+# deployment.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp

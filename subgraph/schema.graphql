@@ -1,0 +1,104 @@
+"""
+PredictionMarket subgraph schema.
+4 core entities: Market, Trade, Claim, LiquidityEvent.
+
+=== Documented GraphQL Queries ===
+
+1. All open markets with current reserves:
+   query OpenMarkets {
+     markets(where: { state: "Open" }, orderBy: resolutionTime, orderDirection: asc) {
+       id question resolutionTime reserveYES reserveNO impliedProbabilityYES
+     }
+   }
+
+2. Trade history for a specific user:
+   query UserTrades($user: Bytes!) {
+     trades(where: { trader: $user }, orderBy: timestamp, orderDirection: desc, first: 50) {
+       id market { question } outcomeId amountIn sharesOut timestamp
+     }
+   }
+
+3. Recent claims with payouts:
+   query RecentClaims {
+     claims(orderBy: timestamp, orderDirection: desc, first: 20) {
+       id claimer payout market { question winningOutcome }
+     }
+   }
+
+4. Volume stats per market:
+   query MarketVolume($marketId: ID!) {
+     market(id: $marketId) {
+       id question totalVolume tradeCount reserveYES reserveNO state
+     }
+   }
+
+5. Liquidity provider activity:
+   query LPActivity($provider: Bytes!) {
+     liquidityEvents(where: { provider: $provider }, orderBy: timestamp, orderDirection: desc) {
+       id market { question } type amountYES amountNO shares timestamp
+     }
+   }
+"""
+
+type Market @entity {
+  id:                   ID!        # market contract address
+  question:             String!
+  resolutionTime:       BigInt!
+  disputeWindow:        BigInt!
+  oracle:               Bytes!
+  collateral:           Bytes!
+  state:                String!    # Open | Closed | Resolved | Disputed | Settled
+  winningOutcome:       String     # YES | NO | null
+  reserveYES:           BigDecimal!
+  reserveNO:            BigDecimal!
+  impliedProbabilityYES: BigDecimal!
+  totalVolume:          BigDecimal!
+  totalFeesCollected:   BigDecimal!
+  tradeCount:           BigInt!
+  createdAt:            BigInt!
+  resolvedAt:           BigInt
+  trades:               [Trade!]!     @derivedFrom(field: "market")
+  claims:               [Claim!]!     @derivedFrom(field: "market")
+  liquidityEvents:      [LiquidityEvent!]! @derivedFrom(field: "market")
+}
+
+type Trade @entity {
+  id:         ID!        # txHash-logIndex
+  market:     Market!
+  trader:     Bytes!
+  outcomeId:  BigInt!    # 1 = YES, 2 = NO
+  direction:  String!    # buy | sell
+  amountIn:   BigDecimal!
+  sharesOut:  BigDecimal!
+  timestamp:  BigInt!
+  blockNumber: BigInt!
+  txHash:     Bytes!
+}
+
+type Claim @entity {
+  id:          ID!
+  market:      Market!
+  claimer:     Bytes!
+  payout:      BigDecimal!
+  timestamp:   BigInt!
+  txHash:      Bytes!
+}
+
+type LiquidityEvent @entity {
+  id:        ID!
+  market:    Market!
+  provider:  Bytes!
+  type:      String!    # add | remove
+  amountYES: BigDecimal!
+  amountNO:  BigDecimal!
+  shares:    BigDecimal!
+  timestamp: BigInt!
+  txHash:    Bytes!
+}
+
+type Protocol @entity {
+  id:                ID!   # "singleton"
+  totalMarkets:      BigInt!
+  totalVolume:       BigDecimal!
+  totalFeesCollected: BigDecimal!
+}
