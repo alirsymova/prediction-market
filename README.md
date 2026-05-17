@@ -2,6 +2,9 @@
 
 On-chain binary prediction market protocol with CPMM AMM pricing, ERC-1155 outcome shares, ERC-4626 fee vault, Chainlink oracle resolution, and OpenZeppelin Governor DAO governance.
 
+GitHub: https://github.com/alirsymova/prediction-market
+Arbiscan: https://sepolia.arbiscan.io/address/0x5e5Dd1B65bBeb5803B8F7f93b78EeB6cDCef2446
+
 **Deployed on:** Base Sepolia
 
 | Contract | Address |
