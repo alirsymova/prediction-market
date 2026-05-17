@@ -3,9 +3,9 @@ const BASE_SEPOLIA_CHAIN_ID = "0x14a34"; // 84532
 
 // Replace these after deployment (also populated from deployment.json in CI)
 const ADDRESSES = {
-  marketFactory: "0x0000000000000000000000000000000000000000",
-  govToken:      "0x0000000000000000000000000000000000000000",
-  governor:      "0x0000000000000000000000000000000000000000",
+  marketFactory: "0x5e5Dd1B65bBeb5803B8F7f93b78EeB6cDCef2446",
+  govToken:      "0xFC213AFE69C46430Cd4C8B7F8AC86D3bA7877df8",
+  governor:      "0x49c2FB085f1b5dE12B665fEA322f5827d4FcE25a",
   usdc:          "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
 };
 
